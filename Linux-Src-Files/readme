@@ -1,0 +1,48 @@
+Course of action followed to add a system call:
+http://tldp.org/HOWTO/html_single/Implement-Sys-Call-Linux-2.6-i386/#AEN50
+http://www.csee.umbc.edu/~chettri/421/projects/hello_syscall.html
+
+	1.  /usr/src/hw1-ashuklaravis/arch/x86/kernel/syscall_table_32.S
+		Added last line:
+		".long sys_mycall" at the end of the list
+	
+	2.  /usr/src/hw1-ashuklaravis/arch/x86/include/asm/unistd_32.h
+		Added almost in the end:
+		
+		#define __NR_mycall 349
+		#define __NR_syscalls 350
+		
+	3. /usr/src/hw1-ashuklaravis/include/linux/syscalls.h
+		Added at almost the beginning
+		
+		"asmlinkage long sys_xcrypt(int i);"
+		
+	4. /usr/src/hw1-ashuklaravis/Makefile
+		Added
+		mycall/ to core-y
+		
+	5. /usr/src/hw1-ashuklaravis/
+		Created
+		Directory mycall
+		
+	6. /usr/src/hw1-ashuklaravis/mycall/
+		Created mycall.c
+		
+		/*---Start of mycall.c----*/
+
+		#include<linux/linkage.h>
+		asmlinkage long sys_mycall(int i){
+			return i+10;
+		}
+		/*---End of mycall.c------*/
+		
+	7. /usr/src/hw1-ashuklaravis/mycall/
+		
+		#####Makefile Start#####
+		obj-y := mycall.o
+		#####Makefile End#######
+	
+	8. Export Symbol function_pointer in hw1-ashuklaravis\kernel\printk.c
+		
+
+		

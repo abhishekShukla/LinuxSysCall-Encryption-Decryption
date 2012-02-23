@@ -1,0 +1,112 @@
+FILES INCLUDED:
+
+DIRECTORY STRUCTURE: /usr/src/hw1-ashuklaravis/hw1/
+    
+    1. kernel.config
+    2. xcipher.c (user space program)
+    3. sys_xcrypt.c (Loadable Kernel Module)
+    4. Makefile
+    5. readme.txt
+
+STEPS TO COMPILE:
+    
+    1. make (all/xcipher/sys_xcrypt/clean)
+    2. insmod sys_xcrypt.ko
+    3. To run the user space program
+                ./xcipher -h : This will show the options and arguments
+
+       General Scenario:
+               ./xcipher -e -p "Password Here" <input_file> <output_file> (For Encryption)
+               ./xcipher -d -p "Password Here" <inout_file> <output_file> (For Decryption)
+
+Description:
+    
+    CHECKING ARGUMENTS: 
+
+        User Space Program:
+            
+            1. In the user space program, gnuopt(3) has been used as required by the assignment specifications. 
+            2. Checks for missing arguments or extra arguments passed. 
+            3. Removes the '\n' is used in the password.
+
+        Loadable Kernel Module:
+            
+            1. Null arguments and pointers to bad addresses are checked (-EINVAL)
+            2. If input file and output file cannot be opened or written (implicitly checked by filp_open)
+            3. If input file and output file are the same (hard link or soft link) (-EINVAL)
+            4. Key length and actual length of the key don't match. (-EINVAL)
+            5. While decrypting if the wrong key is given. (-EACCES is returned)
+
+            NOTE: -ENOMEM is returned when kernel cannot allocate memmory. -EFAULT is returned if there is an error during reading or writing.
+
+    ROUTINES USED:
+            
+            1. vfs_stat : To check for Null arguments and Pointers to bad addresses
+            2. kern_path (with LOOKUP_FOLLOW flag) : To check if output file is same as input file
+            3. vfs_unlink : To delete the partial output file if encryption or decryption fails
+
+    HASH/ENCRYPTION/DECRYPTION Algorithms:
+            
+            1. MD5 hash:
+                    Used in both User Space and Kernel space.
+
+                    To use the MD5 Hash, the following openssl packages were
+                    downlaoded in user space.
+
+                     ----------------------------------
+                    |NOTE: yum install openssl         |
+                    |      yum install openssl-devel   |
+                     ----------------------------------
+    
+
+                    Goal is to store the double hashed password(from the user space) and store it as preamble in the encrypted file.
+
+            2. ceph_aes_encrypt/ceph_ses_decrypt:
+
+            NOTE: These ciphers automatically add padding data if the data given for encryption is not a multiple of CIPHER_BLOCK_SIZE (16 bytes). 
+                  Interesting part is that, when the given data for encryption is a multiple of CIPHER_BLOCK_SIZE, extra 16 bytes of data are padded.
+                  This padding data is automatically detected during decryption, thus reducing the effort to store padding information in the preamble. 
+                  Hence, the preamble is EQUAL to the size of the MD5 hash function. 
+                  Essentially, preamble is double hash (once in user space, once in kernel space) of the password passed to xcipher.c
+    
+    DESIGN DECISION ON HANDLING OF OUTPUT FILE:
+
+            1. If the output file does not exist, a file is created by the name which is given by the user with the same mode as that of the input file.
+            
+            2. If the output file already exists: 
+                NOTE: If this output file is a hard link or a symbolic link to the inout file, then an error is returned with proper errno set.
+
+                a. If the output file exists and is accessible by the user, then that file is opened and used to the encrypted/decrypted data.
+                b. Thus, upon success, the old existing output file is overwritten.
+                c. DELETION OF PARTIAL OUTPUT FILE: 
+                    
+                    If there is failure in the process, the partial output file is deleted. 
+                    Disadvantage: If the output file already existed, the user will lose the existing output file. 
+                                  This design required the user to be more careful. 
+
+                    
+REFERENCES:
+    
+    1. To add a system call:
+        http://tldp.org/HOWTO/html_single/Implement-Sys-Call-Linux-2.6-i386/#AEN50
+        http://www.csee.umbc.edu/~chettri/421/projects/hello_syscall.html
+    2. References to write the system call (LKM in this case) are mentioned in the code
+
+    
+
+
+        
+
+
+
+    
+
+
+
+    
+
+
+
+
+
+    
