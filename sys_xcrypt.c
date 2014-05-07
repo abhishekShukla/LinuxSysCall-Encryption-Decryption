@@ -402,7 +402,7 @@ int loadMod(char *infile, char* outfile, char *keybuf, int keylen, int flags){
         print_hex_dump_bytes("KERNEL HASH: ", DUMP_PREFIX_NONE, k_tempdst, 16);
 
         /* Writing the preamble of 16 bytes*/
-        vfs_write(out_fd, k_tempdst, HASHLEN, &(out_fd->f_pos));
+        write_bytes = vfs_write(out_fd, k_tempdst, HASHLEN, &(out_fd->f_pos));
         if(write_bytes < 0){
                     ERR;
                     return_val = -EFAULT;
