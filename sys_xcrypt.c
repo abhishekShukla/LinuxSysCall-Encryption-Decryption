@@ -411,6 +411,8 @@ int loadMod(char *infile, char* outfile, char *keybuf, int keylen, int flags){
         }
         /*Writing to the file*/
         while(true){
+            read_bytes = 0;
+            write_bytes = 0;
             memset(k_tempbuf, 0, BLOCK_READ_SIZE+PAD);
             memset(k_tempdst, 0, BLOCK_READ_SIZE+PAD);
             read_bytes = vfs_read(in_fd, k_tempbuf, BLOCK_READ_SIZE, &(in_fd->f_pos));
@@ -442,6 +444,8 @@ int loadMod(char *infile, char* outfile, char *keybuf, int keylen, int flags){
         }
     }
     if(flags == DECRYPT){
+        read_bytes = 0;
+        write_bytes = 0;
         
         in_fd->f_pos = 0;
         out_fd->f_pos = 0;
@@ -474,6 +478,8 @@ int loadMod(char *infile, char* outfile, char *keybuf, int keylen, int flags){
         }
         /* Decrypting the file if the hash and the preamble match */    
         while(true){
+            read_bytes = 0;
+            write_bytes = 0;
             memset(k_tempbuf, 0, BLOCK_READ_SIZE+PAD);
             memset(k_tempdst, 0, BLOCK_READ_SIZE+PAD);
 
